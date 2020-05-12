@@ -24,6 +24,7 @@ class WavefrontOBJ:
         self.num_vertices = 0
         self.num_faces = 0
         self.vertex_per_face = 0
+
     def to_string(self):
         return "Mesh: {}, {} vertices, {} faces, {} vertices per face".format(self.name,
                                                                               self.vertices.shape[0],
@@ -38,35 +39,49 @@ class WavefrontOBJ:
         return pymesh.form_mesh(self.vertices, self.faces)
 
     def save_obj(self, filename: str ):
-        """Saves a WavefrontOBJ object to a file
-
-        Warning: Contains no error checking!
-
-        """
-        with open( filename, 'w' ) as ofile:
+        with open(filename, 'w') as ofile:
+            ofile.write("#generated with MeshPyIO\n")
+            # Materials
             for mlib in self.mtllibs:
                 ofile.write('mtllib {}\n'.format(mlib))
+            # Vertices
             for vtx in self.vertices:
-                ofile.write('v '+' '.join(['{}'.format(v) for v in vtx])+'\n')
+                vertex_position = 'v '+' '.join(['{}'.format(v) for v in vtx])
+                # TODO ADD Vertex color later
+                ofile.write(vertex_position+'\n')
+            # Texture coordinates
             for tex in self.texcoords:
                 ofile.write('vt '+' '.join(['{}'.format(vt) for vt in tex])+'\n')
+            # vertices normals
             for nrm in self.normals:
                 ofile.write('vn '+' '.join(['{}'.format(vn) for vn in nrm])+'\n')
+            # Material IDs
             if not self.mtlid:
                 self.mtlid = [-1] * len(self.faces)
             poly_idx = np.argsort( np.array( self.mtlid ) )
             cur_mat = -1
             for pid in poly_idx:
-                if self.mtlid[pid] != cur_mat:
+                if self.mtlid[pid] != cur_mat and len(self.mtllibs)>0:
                     cur_mat = self.mtlid[pid]
                     ofile.write('usemtl {}\n'.format(self.mtls[cur_mat]))
-                pstr = 'f '
-                for v in self.faces[pid]:
-                    # UGLY!
-                    vstr = '{}/{}/{} '.format(v[0]+1,v[1]+1 if v[1] >= 0 else 'X', v[2]+1 if v[2] >= 0 else 'X' )
-                    vstr = vstr.replace('/X/','//').replace('/X ', ' ')
-                    pstr += vstr
-                ofile.write( pstr+'\n')
+                pstr = 'f'
+                vstr = ''
+                for index in range(self.vertex_per_face):
+                    # face index
+                    vstr += " {}".format(self.faces[pid][index]+1)
+
+                    # faces_coordinates_indices
+                    if len(self.faces_coordinates_indices) > 0 and self.faces_coordinates_indices[pid][0] > 0:
+                        vstr += "/{}".format(self.faces_coordinates_indices[pid][index]+1)
+
+                    # faces_norm_indices
+                    if self.faces_norm_indices.size > 0 and self.faces_norm_indices[pid][0] > 0:
+                        if self.faces_coordinates_indices.size < 0 or self.faces_coordinates_indices[pid][0] < 0:
+                            vstr += "/"
+                        vstr += "/{}".format(self.faces_norm_indices[pid][index]+1)
+
+                pstr += vstr
+                ofile.write(pstr+'\n')
 
     @staticmethod
     def form_mesh(*args, **keywds):
