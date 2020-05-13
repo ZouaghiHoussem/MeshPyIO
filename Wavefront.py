@@ -1,10 +1,9 @@
 import numpy as np
 import os
-import  sys
+import sys
 import pymesh
-
-
 from tools.utils import *
+
 
 class WavefrontOBJ:
     def __init__(self, default_mtl='default_mtl'):
@@ -15,7 +14,7 @@ class WavefrontOBJ:
         self.path      = None               # path of loaded object
         self.name      = None
         self.mtllibs   = []                 # .mtl files references via mtllib
-        self.mtls      = [default_mtl]    # materials referenced
+        self.mtls      = [default_mtl]      # materials referenced
         self.mtlid     = []                 # indices into self.mtls for each polygon
         self.vertices  = []                 # vertices as an Nx3 or Nx6 array (per vtx colors)
         self.normals   = []                 # normals
@@ -94,10 +93,9 @@ class WavefrontOBJ:
 
                     # faces_norm_indices
                     if len(self.faces_norm_indices) > 0 and self.faces_norm_indices[pid][0] >= 0:
-                        if self.faces_coordinates_indices.size < 0 or self.faces_coordinates_indices[pid][0] < 0:
+                        if len(self.faces_coordinates_indices) < 0 or self.faces_coordinates_indices[pid][0] < 0:
                             vstr += "/"
                         vstr += "/{}".format(self.faces_norm_indices[pid][index]+1)
-
                 pstr += vstr
                 ofile.write(pstr+'\n')
 
@@ -182,7 +180,6 @@ class WavefrontOBJ:
             obj_file.num_faces = obj_file.faces.shape[0]
             obj_file.vertex_per_face = obj_file.faces[0].shape[0]
             obj_file.mesh = obj_file.export_pymesh()
-
             return obj_file
         except:
             print("Error when loading file {}".format(filename))
