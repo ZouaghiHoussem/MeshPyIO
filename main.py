@@ -6,7 +6,7 @@ import numpy as np
 file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"), "frame-0001.obj")
 file_2 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/male/Fitted/fitted"), "smoothed-0000.obj")
 file_3 = "test/cube.obj"
-obj = WavefrontOBJ.load_obj(file_3, triangulate=False)
+obj = WavefrontOBJ.load_obj(file_1, triangulate=False)
 print(obj.to_string())
 obj.save_obj("test/saved.obj")
 #print(obj.vertices[0])

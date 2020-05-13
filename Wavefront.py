@@ -11,7 +11,7 @@ class WavefrontOBJ:
         self.path      = None               # path of loaded object
         self.name      = None
         self.mtllibs   = []                 # .mtl files references via mtllib
-        self.mtls      = [ default_mtl ]    # materials referenced
+        self.mtls      = [default_mtl]    # materials referenced
         self.mtlid     = []                 # indices into self.mtls for each polygon
         self.vertices  = []                 # vertices as an Nx3 or Nx6 array (per vtx colors)
         self.normals   = []                 # normals
@@ -31,7 +31,7 @@ class WavefrontOBJ:
                                                                               self.faces.shape[0],
                                                                               len(self.faces[0]))
 
-    def set_vertices(self, new_vertices : np.ndarray):
+    def set_vertices(self, new_vertices: np.ndarray):
         self.vertices = new_vertices.copy()
         self.mesh = self.export_pymesh()
 
@@ -71,11 +71,11 @@ class WavefrontOBJ:
                     vstr += " {}".format(self.faces[pid][index]+1)
 
                     # faces_coordinates_indices
-                    if len(self.faces_coordinates_indices) > 0 and self.faces_coordinates_indices[pid][0] > 0:
+                    if len(self.faces_coordinates_indices) > 0 and self.faces_coordinates_indices[pid][0] >= 0:
                         vstr += "/{}".format(self.faces_coordinates_indices[pid][index]+1)
 
                     # faces_norm_indices
-                    if self.faces_norm_indices.size > 0 and self.faces_norm_indices[pid][0] > 0:
+                    if len(self.faces_norm_indices) > 0 and self.faces_norm_indices[pid][0] >= 0:
                         if self.faces_coordinates_indices.size < 0 or self.faces_coordinates_indices[pid][0] < 0:
                             vstr += "/"
                         vstr += "/{}".format(self.faces_norm_indices[pid][index]+1)
