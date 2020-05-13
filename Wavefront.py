@@ -8,6 +8,10 @@ from tools.utils import *
 
 class WavefrontOBJ:
     def __init__(self, default_mtl='default_mtl'):
+        """
+        initialise an empty mesh
+        :param default_mtl: default material
+        """
         self.path      = None               # path of loaded object
         self.name      = None
         self.mtllibs   = []                 # .mtl files references via mtllib
@@ -26,19 +30,33 @@ class WavefrontOBJ:
         self.vertex_per_face = 0
 
     def to_string(self):
+        """
+        export mesh information.
+        """
         return "Mesh: {}, {} vertices, {} faces, {} vertices per face".format(self.name,
                                                                               self.vertices.shape[0],
                                                                               self.faces.shape[0],
                                                                               len(self.faces[0]))
 
     def set_vertices(self, new_vertices: np.ndarray):
+        """
+        update mesh vertices and pymesh mesh attribute.
+        :param new_vertices: the new vertices
+        """
         self.vertices = new_vertices.copy()
         self.mesh = self.export_pymesh()
 
     def export_pymesh(self):
+        """
+        export a pymesh instance of the current mesh object.
+        """
         return pymesh.form_mesh(self.vertices, self.faces)
 
-    def save_obj(self, filename: str ):
+    def save_obj(self, filename: str):
+        """
+        save the current mesh object in a file.
+        :param filename: export file path
+        """
         with open(filename, 'w') as ofile:
             ofile.write("#generated with MeshPyIO\n")
             # Materials
@@ -85,6 +103,10 @@ class WavefrontOBJ:
 
     @staticmethod
     def form_mesh(*args, **keywds):
+        """
+        create a mesh instance using some or all parameters. The vertices and faces are always required.
+        :param keywds: the parameters could be used.
+        """
         obj_file = WavefrontOBJ(default_mtl ="default_mtl")
         if ("vertices" not in keywds) or ("faces" not in keywds):
             print("Error: Could not form mesh: Vertices or faces was not provided")
@@ -114,6 +136,9 @@ class WavefrontOBJ:
 
     @staticmethod
     def load_obj(filename: str, default_mtl='default_mtl', triangulate=False):
+        """
+        Load a mesh object from an obj file.
+        """
         # parses a vertex record as either vid, vid/tid, vid//nid or vid/tid/nid
         # and returns a 3-tuple where unparsed values are replaced with -1
         obj_file = WavefrontOBJ(default_mtl=default_mtl)
