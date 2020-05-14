@@ -1,7 +1,5 @@
 from Wavefront import WavefrontOBJ
 import os
-import pymesh
-import numpy as np
 
 file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"), "frame-0001.obj")
 file_2 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/male/Fitted/fitted"), "smoothed-0000.obj")

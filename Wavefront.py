@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import sys
-import pymesh
+
 from tools.utils import *
 
 
@@ -23,7 +23,6 @@ class WavefrontOBJ:
         self.faces  = []                 # M*Nv*3 array, Nv=# of vertices, stored as vid,tid,nid (-1 for N/A)
         self.faces_coordinates_indices   =[]
         self.faces_norm_indices          = []
-        self.mesh = None            # M*Nv*3 array, Nv=# of vertices, stored as vid,tid,nid (-1 for N/A)
         self.num_vertices = 0
         self.num_faces = 0
         self.vertex_per_face = 0
@@ -36,20 +35,6 @@ class WavefrontOBJ:
                                                                               self.vertices.shape[0],
                                                                               self.faces.shape[0],
                                                                               len(self.faces[0]))
-
-    def set_vertices(self, new_vertices: np.ndarray):
-        """
-        update mesh vertices and pymesh mesh attribute.
-        :param new_vertices: the new vertices
-        """
-        self.vertices = new_vertices.copy()
-        self.mesh = self.export_pymesh()
-
-    def export_pymesh(self):
-        """
-        export a pymesh instance of the current mesh object.
-        """
-        return pymesh.form_mesh(self.vertices, self.faces)
 
     def save_obj(self, filename: str):
         """
@@ -129,7 +114,6 @@ class WavefrontOBJ:
         if "faces_norm_indices" in keywds:
             obj_file.faces_norm_indices = keywds["faces_norm_indices"]
 
-        obj_file.mesh = obj_file.export_pymesh()
         return obj_file
 
     @staticmethod
@@ -179,7 +163,6 @@ class WavefrontOBJ:
             obj_file.num_vertices = obj_file.vertices.shape[0]
             obj_file.num_faces = obj_file.faces.shape[0]
             obj_file.vertex_per_face = obj_file.faces[0].shape[0]
-            obj_file.mesh = obj_file.export_pymesh()
             return obj_file
         except:
             print("Error when loading file {}".format(filename))
