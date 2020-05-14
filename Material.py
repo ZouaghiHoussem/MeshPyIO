@@ -5,9 +5,9 @@ from tools.utils import *
 
 class Material:
     def __init__(self, file_name="default_mtl"):
-        self.file = file_name
-        self.name = ''  # name : newmtl
-        self.map_Kd = ''  # texture : map_Kd
+        self.file_name = file_name
+        self.newmtl = ''
+        self.map_Kd = ''
         self.Ns = -1
         self.Ka = []
         self.Kd = []
@@ -18,15 +18,23 @@ class Material:
         self.illum = -1
 
     def save(self, file_path):
+        """
+        save the material file
+        :param file_path: the saving path
+        """
         with open(file_path, 'w') as ofile:
             ofile.write("#generated with MeshPyIO\n")
             ofile.write(self.to_string(formatted=True))
 
     def to_string(self, formatted=False):
+        """
+        convert the material to string.
+        :param formatted: if True the returned sting respects the standard of MTL files.
+        """
         msg = ""
         if not formatted:
-            msg += "______Begin: {}_____".format(self.file)
-        msg += "\nnewmtl {}".format(self.name)
+            msg += "______Begin: {}_____".format(self.file_name)
+        msg += "\nnewmtl {}".format(self.newmtl)
         if not(self.map_Kd == ''):
             msg += "\nmap_Kd {}".format(self.map_Kd)
         if not(self.Ns == -1):
@@ -46,27 +54,55 @@ class Material:
         if not(self.illum == -1):
             msg += "\nillum {}".format(self.illum)
         if not formatted:
-            msg += "\n______End: {}_____".format(self.file)
+            msg += "\n______End: {}_____".format(self.file_name)
         return msg
 
     @staticmethod
     def form_material(*args, **keywds):
+        """
+        form a material using the provided attributes
+        """
+        mtl = Material()
         if "newmtl" not in keywds:
             print("Error: Could not form material: newmtl was not provided")
-            return None
+            return mtl
+        if "file_name" in keywds:
+            mtl.file_name = keywds["file_name"]
+        mtl.newmtl = keywds["newmtl"]
+        if "map_Kd" in keywds:
+            mtl.map_Kd = keywds["map_Kd"]
+        if "Ns" in keywds:
+            mtl.Ns = keywds["Ns"]
+        if "Ka" in keywds:
+            mtl.Ns = keywds["Ka"]
+        if "Kd" in keywds:
+            mtl.Ns = keywds["Kd"]
+        if "Ks" in keywds:
+            mtl.Ns = keywds["Ks"]
+        if "Ke" in keywds:
+            mtl.Ns = keywds["Ke"]
+        if "Ni" in keywds:
+            mtl.Ns = keywds["Ni"]
+        if "d" in keywds:
+            mtl.Ns = keywds["d"]
+        if "illum" in keywds:
+            mtl.Ns = keywds["illum"]
+        return mtl
 
     @staticmethod
     def load(filename):
+        """
+        Load a material file.
+        """
         mtl = Material(file_name=os.path.basename(filename))
         try:
             with open(filename, 'r') as mtlf:
                 for line in mtlf:
                     s_line = line.split()
-                    #print(s_line)
                     if not s_line:
                         continue
                     if s_line[0] == 'newmtl':
-                        mtl.name = s_line[1]
+                        mtl.newmtl = s_line[1]
                     if s_line[0] == 'map_Kd':
                         mtl.map_Kd = s_line[1]
                     if s_line[0] == 'Ns':
@@ -86,13 +122,14 @@ class Material:
                     if s_line[0] == 'illum':
                         mtl.illum = int(s_line[1])
         except:
-            print("Error when loading material {}".format(filename))
+            print("Error 02: no file found, check path: {}".format(filename))
         return mtl
 
 
-file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"), "frame-0001.mtl")
-file_3 = "test/untitled.mtl"
-
-mtl = Material.load(file_1)
-print(mtl.to_string())
-mtl.save('test/saved.mtl')
+if __name__ == "__main__":
+    file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"), "frame-0001.mtl")
+    file_3 = "test/untitled.mtl"
+    mtl = Material.load(file_3)
+    mtl_2 = Material.form_material(newmtl=mtl.newmtl, map_Kd=mtl.map_Kd, file_name=mtl.file_name)
+    print(mtl_2.to_string())
+    mtl_2.save('test/saved.mtl')
