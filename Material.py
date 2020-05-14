@@ -138,6 +138,6 @@ if __name__ == "__main__":
     mat.append(Material.load(file_1))
     mat.append(Material.load(file_3))
 
-    #mtl_2 = Material.form_material(newmtl=mtl.newmtl, map_Kd=mtl.map_Kd, file_name=mtl.file_name)
+    mat.append(Material.form_material(newmtl=mat[0].newmtl, map_Kd=mat[0].map_Kd, file_name=mat[0].file_name))
     print(mat[1].to_string())
     #mtl_2.save('test/saved.mtl')

@@ -3,6 +3,7 @@ import os
 import sys
 from Material import Material
 from tools.utils import *
+import pymesh
 
 
 class WavefrontOBJ:
@@ -11,21 +12,32 @@ class WavefrontOBJ:
         initialise an empty mesh
         :param default_mtl: default material
         """
-        self.path      = None               # path of loaded object
-        self.name      = None
-        self.mtllibs   = []                 # .mtl files references via mtllib
-        self.mtls      = [default_mtl]      # materials referenced
-        self.mtlid     = []                 # indices into self.mtls for each polygon
-        self.vertices  = []                 # vertices as an Nx3 or Nx6 array (per vtx colors)
-        self.normals   = []                 # normals
+        self.path = None               # path of loaded object
+        self.name = None
+        self.mtllibs = []                 # .mtl files references via mtllib
+        self.mtls = [default_mtl]      # materials referenced
+        self.mtlid = []                 # indices into self.mtls for each polygon
+        self.vertices = []                 # vertices as an Nx3 or Nx6 array (per vtx colors)
+        self.normals = []                 # normals
         self.texcoords = []                 # texture coordinates
+
         # Face elements
-        self.faces  = []                 # M*Nv*3 array, Nv=# of vertices, stored as vid,tid,nid (-1 for N/A)
-        self.faces_coordinates_indices   =[]
-        self.faces_norm_indices          = []
+        self.faces = []                 # M*Nv*3 array, Nv=# of vertices, stored as vid,tid,nid (-1 for N/A)
+        self.faces_coordinates_indices = []
+        self.faces_norm_indices = []
         self.num_vertices = 0
         self.num_faces = 0
         self.vertex_per_face = 0
+
+    def export_pymesh(self):
+        """
+        export the current object instance to a pymesh object.
+        """
+        if len(self. vertices) > 0:
+            return pymesh.form_mesh(self.vertices, self.faces)
+        else:
+            print("Error 010: Error of creating Pymesh object")
+            return None
 
     def to_string(self):
         """
@@ -36,9 +48,18 @@ class WavefrontOBJ:
                                                                              self.faces.shape[0],
                                                                              len(self.faces[0]))
         if len(self.mtllibs) > 0:
-            msg += "mtls:"
+            msg += ", mtls:"
             for mtl in self.mtllibs:
                 msg += "[{}]".format(mtl.file_name)
+
+        if len(self.texcoords) > 0:
+            msg += ", {} texcoords".format(len(self.texcoords))
+
+        if len(self.faces_norm_indices) > 0:
+            msg += ", FaceNormals included"
+
+        if len(self.normals) > 0:
+            msg += ", {} Vertices normals".format(len(self.normals))
 
         return msg
 
@@ -179,3 +200,16 @@ class WavefrontOBJ:
             return obj_file
         except:
             print("Error when loading file {}".format(filename))
+
+if __name__ == "__main__":
+    file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"),
+                          "frame-0001.obj")
+    file_2 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/male/Fitted/fitted"),
+                          "smoothed-0000.obj")
+    file_3 = "test/untitled.obj"
+
+    obj = WavefrontOBJ.load_obj(file_1)
+    print(obj.to_string())
+    obj_pymesh = obj.export_pymesh()
+    print(obj_pymesh.num_vertices)
+    #obj.save_obj("test/save/saved.obj", save_materials=True, save_textures=True)
