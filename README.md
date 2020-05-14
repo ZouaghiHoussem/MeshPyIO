@@ -24,4 +24,9 @@ obj_new = WavefrontOBJ.form_mesh(vertices=obj.vertices, faces=obj.faces)
 # save mesh
 # saving a mesh include saving the texture and materials.
 obj_new.save_obj("test/new_cube.obj", save_textures=True, save_materials=True)
+
+# export the mesh to a pymesh instance
+# You can export to mesh to get use of the geometry processing methods
+# offered by PyMesh
+obj_pymesh = obj.export_pymesh()
 ```
