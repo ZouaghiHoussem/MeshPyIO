@@ -2,7 +2,6 @@
 A python library for 3d mesh management.
 ## Requirements
 1. Numpy
-2. PyMesh
 ## Documentation
 This package load, form and save a Wavefront object (.obj). It loads the following information:
 * vertices: Ndarray of the shape: *N*x*D*, where N is number of vertices and *D* in [2, 3]
