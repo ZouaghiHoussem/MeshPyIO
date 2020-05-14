@@ -8,7 +8,11 @@ file_2 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/
 file_3 = "test/cube.obj"
 obj = WavefrontOBJ.load_obj(file_1)
 print(obj.to_string())
-obj.save_obj("test/saved.obj")
+print(len(obj.mtlid))
+print(obj.mtllibs)
+print(obj.mtls)
+
+#obj.save_obj("test/saved.obj")
 #print(obj.vertices[0])
 #print(obj.faces[0])
 #print(obj.faces_norm_indices[0])

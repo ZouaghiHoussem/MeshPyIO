@@ -105,7 +105,7 @@ class WavefrontOBJ:
         create a mesh instance using some or all parameters. The vertices and faces are always required.
         :param keywds: the parameters could be used.
         """
-        obj_file = WavefrontOBJ(default_mtl ="default_mtl")
+        obj_file = WavefrontOBJ(default_mtl="default_mtl")
         if ("vertices" not in keywds) or ("faces" not in keywds):
             print("Error: Could not form mesh: Vertices or faces was not provided")
             return None

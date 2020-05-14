@@ -12,8 +12,10 @@ def parse_vertex(vstr):
 def format_data(array, key:str, conv_str=False):
     np.set_printoptions(threshold=sys.maxsize)
     arr = array.astype('str')
-    row_data = np.append(np.tile(key, (arr.shape[0], 1)), arr, axis=1)
-
+    if len(arr.shape) == 1:
+        row_data = np.append(key, arr)
+    else:
+        row_data = np.append(np.tile(key, (len(arr), 1)), arr, axis=0)
     str_data = np.array2string(row_data, separator=' ')
     str_data = re.sub('[\[\'\]]', '', str_data).replace(' {}'.format(key), '{}'.format(key))
     return str_data
