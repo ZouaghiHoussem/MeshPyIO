@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import sys
-
+from Material import Material
 from tools.utils import *
 
 
@@ -31,21 +31,32 @@ class WavefrontOBJ:
         """
         export mesh information.
         """
-        return "Mesh: {}, {} vertices, {} faces, {} vertices per face".format(self.name,
-                                                                              self.vertices.shape[0],
-                                                                              self.faces.shape[0],
-                                                                              len(self.faces[0]))
+        msg = "Mesh: {}, {} vertices, {} faces, {} vertices per face".format(self.name,
+                                                                             self.vertices.shape[0],
+                                                                             self.faces.shape[0],
+                                                                             len(self.faces[0]))
+        if len(self.mtllibs) > 0:
+            msg += "mtls:"
+            for mtl in self.mtllibs:
+                msg += "[{}]".format(mtl.file_name)
 
-    def save_obj(self, filename: str):
+        return msg
+
+    def save_obj(self, filename: str, save_materials=False, save_textures=False):
         """
         save the current mesh object in a file.
         :param filename: export file path
+        :param save_materials: save material files
+        :param save_textures: save texture image files
         """
         with open(filename, 'w') as ofile:
             ofile.write("#generated with MeshPyIO\n")
             # Materials
             for mlib in self.mtllibs:
-                ofile.write('mtllib {}\n'.format(mlib))
+                ofile.write('mtllib {}\n'.format(mlib.file_name))
+                if save_materials:
+                    for mtl in self.mtllibs:
+                        mtl.save(os.path.join(os.path.dirname(filename), mtl.file_name), save_texture=save_textures)
             # Vertices
             for vtx in self.vertices:
                 vertex_position = 'v '+' '.join(['{}'.format(v) for v in vtx])
@@ -149,7 +160,9 @@ class WavefrontOBJ:
                             obj_file.mtlid.append(cur_mat)
                             obj_file.faces.append(poly)
                     elif toks[0] == 'mtllib':
-                        obj_file.mtllibs.append(toks[1])
+                        _path = os.path.join(os.path.dirname(filename), toks[1])
+                        mat = Material.load(_path)
+                        obj_file.mtllibs.append(mat)
                     elif toks[0] == 'usemtl':
                         if toks[1] not in obj_file.mtls:
                             obj_file.mtls.append(toks[1])

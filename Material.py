@@ -1,11 +1,12 @@
 import numpy as np
 import os
 from tools.utils import *
-
+from shutil import copyfile
 
 class Material:
     def __init__(self, file_name="default_mtl"):
-        self.file_name = file_name
+        self.path = os.path.dirname(file_name)
+        self.file_name = os.path.basename(file_name)
         self.newmtl = ''
         self.map_Kd = ''
         self.Ns = -1
@@ -17,7 +18,7 @@ class Material:
         self.d = -1
         self.illum = -1
 
-    def save(self, file_path):
+    def save(self, file_path, save_texture=False):
         """
         save the material file
         :param file_path: the saving path
@@ -25,6 +26,9 @@ class Material:
         with open(file_path, 'w') as ofile:
             ofile.write("#generated with MeshPyIO\n")
             ofile.write(self.to_string(formatted=True))
+        if (self.map_Kd != '') and save_texture:
+            copyfile(os.path.join(self.path, self.map_Kd),
+                     os.path.join(os.path.dirname(file_path), self.map_Kd))
 
     def to_string(self, formatted=False):
         """
@@ -94,7 +98,7 @@ class Material:
         """
         Load a material file.
         """
-        mtl = Material(file_name=os.path.basename(filename))
+        mtl = Material(file_name=filename)
         try:
             with open(filename, 'r') as mtlf:
                 for line in mtlf:
@@ -123,13 +127,17 @@ class Material:
                         mtl.illum = int(s_line[1])
         except:
             print("Error 02: no file found, check path: {}".format(filename))
+            sys.exit()
         return mtl
 
 
 if __name__ == "__main__":
     file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"), "frame-0001.mtl")
-    file_3 = "test/untitled.mtl"
-    mtl = Material.load(file_3)
-    mtl_2 = Material.form_material(newmtl=mtl.newmtl, map_Kd=mtl.map_Kd, file_name=mtl.file_name)
-    print(mtl_2.to_string())
-    mtl_2.save('test/saved.mtl')
+    file_3 = "/home/houssem/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new/frame-0001.mtl"
+    mat = []
+    mat.append(Material.load(file_1))
+    mat.append(Material.load(file_3))
+
+    #mtl_2 = Material.form_material(newmtl=mtl.newmtl, map_Kd=mtl.map_Kd, file_name=mtl.file_name)
+    print(mat[1].to_string())
+    #mtl_2.save('test/saved.mtl')

@@ -1,16 +1,14 @@
 from Wavefront import WavefrontOBJ
 import os
+from Material import Material
 
 file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"), "frame-0001.obj")
 file_2 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/male/Fitted/fitted"), "smoothed-0000.obj")
 file_3 = "test/cube.obj"
+
 obj = WavefrontOBJ.load_obj(file_1)
 print(obj.to_string())
-print(len(obj.mtlid))
-print(obj.mtllibs)
-print(obj.mtls)
-
-#obj.save_obj("test/saved.obj")
+obj.save_obj("test/save/saved.obj", save_materials=True, save_textures=True)
 #print(obj.vertices[0])
 #print(obj.faces[0])
 #print(obj.faces_norm_indices[0])
