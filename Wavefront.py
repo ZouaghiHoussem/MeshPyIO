@@ -148,6 +148,56 @@ class WavefrontOBJ:
 
         return obj_file
 
+    def load(self, filename: str, default_mtl='default_mtl', triangulate=False):
+        """
+        Load a mesh object from an obj file.
+        """
+        # parses a vertex record as either vid, vid/tid, vid//nid or vid/tid/nid
+        # and returns a 3-tuple where unparsed values are replaced with -1
+        try:
+            with open(filename, 'r') as objf:
+                self.path = filename
+                self.name = os.path.basename(filename)
+                cur_mat = self.mtls.index(default_mtl)
+                for line in objf:
+                    toks = line.split()
+                    if not toks:
+                        continue
+                    if toks[0] == 'v':
+                        self.vertices.append([float(v) for v in toks[1:]])
+                    elif toks[0] == 'vn':
+                        self.normals.append([float(v) for v in toks[1:]])
+                    elif toks[0] == 'vt':
+                        self.texcoords.append([float(v) for v in toks[1:]])
+                    elif toks[0] == 'f':
+                        poly = [parse_vertex(vstr) for vstr in toks[1:]]
+                        if triangulate:
+                            for i in range(2, len(poly)):
+                                self.mtlid.append(cur_mat)
+                                self.faces.append((poly[0], poly[i - 1], poly[i]))
+                        else:
+                            self.mtlid.append(cur_mat)
+                            self.faces.append(poly)
+                    elif toks[0] == 'mtllib':
+                        _path = os.path.join(os.path.dirname(filename), toks[1])
+                        mat = Material.load(_path)
+                        self.mtllibs.append(mat)
+                    elif toks[0] == 'usemtl':
+                        if toks[1] not in self.mtls:
+                            self.mtls.append(toks[1])
+                        cur_mat = self.mtls.index(toks[1])
+
+            self.vertices = np.array(self.vertices)[:, :3]
+            _faces = np.array(self.faces)
+            self.faces = _faces[:, :, 0]
+            self.faces_coordinates_indices = _faces[:, :, 1]
+            self.faces_norm_indices = _faces[:, :, 2]
+            self.num_vertices = self.vertices.shape[0]
+            self.num_faces = self.faces.shape[0]
+            self.vertex_per_face = self.faces[0].shape[0]
+        except:
+            print("Error when loading file {}".format(filename))
+
     @staticmethod
     def load_obj(filename: str, default_mtl='default_mtl', triangulate=False):
         """

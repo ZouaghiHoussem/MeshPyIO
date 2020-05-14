@@ -6,7 +6,9 @@ file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/
 file_2 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/male/Fitted/fitted"), "smoothed-0000.obj")
 file_3 = "test/untitled.obj"
 
-obj = WavefrontOBJ.load_obj(file_1)
+#obj = WavefrontOBJ.load_obj(file_1)
+obj = WavefrontOBJ()
+obj.load(file_1)
 print(obj.to_string())
 #obj.save_obj("test/save/saved.obj", save_materials=True, save_textures=True)
 #print(obj.vertices[0])
