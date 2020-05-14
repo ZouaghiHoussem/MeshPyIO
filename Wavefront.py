@@ -46,8 +46,8 @@ class WavefrontOBJ:
         """
         save the current mesh object in a file.
         :param filename: export file path
-        :param save_materials: save material files
-        :param save_textures: save texture image files
+        :param save_materials: save material files in the target folder
+        :param save_textures: save texture image files in the target folder
         """
         with open(filename, 'w') as ofile:
             ofile.write("#generated with MeshPyIO\n")

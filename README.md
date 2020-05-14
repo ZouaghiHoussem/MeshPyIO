@@ -19,8 +19,10 @@ obj = WavefrontOBJ.load_obj("test/cube.obj")
 print(obj.to_string())
 
 # create a new mesh
+# we can form a new mesh with at least vertices and faces and any other attributes
 obj_new = WavefrontOBJ.form_mesh(vertices=obj.vertices, faces=obj.faces)
 
 # save mesh
-obj_new.save_obj("test/new_cube.obj")
+# saving a mesh include saving the texture and materials.
+obj_new.save_obj("test/new_cube.obj", save_textures=True, save_materials=True)
 ```
