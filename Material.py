@@ -7,8 +7,11 @@ class Material:
     def __init__(self, file_name="default_mtl"):
         self.path = os.path.dirname(file_name)
         self.file_name = os.path.basename(file_name)
+        # material name
         self.newmtl = ''
+        # texture map info
         self.map_Kd = ''
+        # color and illunination info
         self.Ns = -1
         self.Ka = []
         self.Kd = []
