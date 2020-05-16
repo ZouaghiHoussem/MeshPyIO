@@ -82,8 +82,8 @@ class WavefrontOBJ:
             self.num_faces = self.faces.shape[0]
             self.vertex_per_face = self.faces[0].shape[0]
         except:
-            print("Error when loading file {}".format(filename))
-
+            print("Error 003: file {} not found".format(filename))
+            sys.exit()
     def set_vertices(self, vertices_list):
         self.num_vertices = vertices_list.shape[0]
         self.vertices = vertices_list.copy()
@@ -266,7 +266,7 @@ class WavefrontOBJ:
 
 
 if __name__ == "__main__":
-    path = os.path.join(os.path.expanduser("files/input"), "frame-0001_edited.obj")
+    path = os.path.join(os.path.expanduser("files/input"), "smoothed-0000.obj")
     obj = WavefrontOBJ.load_obj(path)
     print(obj.to_string())
     #obj_pymesh = obj.export_pymesh()
