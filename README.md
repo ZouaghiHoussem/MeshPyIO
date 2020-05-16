@@ -29,4 +29,7 @@ obj_new.save_obj("test/new_cube.obj", save_textures=True, save_materials=True)
 # You can export to mesh to get use of the geometry processing methods
 # offered by PyMesh
 obj_pymesh = obj.export_pymesh()
+
+# Set the mesh attributes
+obj_new.set_attributes()
 ```

@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import sys
-from Material import Material
+from Material import MaterialLibrary
 from tools.utils import *
 import pymesh
 
@@ -66,7 +66,7 @@ class WavefrontOBJ:
                             self.faces.append(poly)
                     elif toks[0] == 'mtllib':
                         _path = os.path.join(os.path.dirname(filename), toks[1])
-                        mat = Material.load(_path)
+                        mat = MaterialLibrary.load_mtlib(_path)
                         self.mtllibs.append(mat)
                     elif toks[0] == 'usemtl':
                         if toks[1] not in self.mtls:
@@ -91,7 +91,7 @@ class WavefrontOBJ:
     def set_faces(self, faces):
         self.faces = faces.copy()
 
-    def set_attributes(self, *args, **keywds):
+    def set_attributes(self, **keywds):
         """
         update the current instance attributes.
         :params keywds:
@@ -105,42 +105,35 @@ class WavefrontOBJ:
                 * faces: bool: True to set faces
 
         """
-        if "target_object" not in keywds:
-            print("Error: 002a: target_object parameter is missing in update_attirbutes FN")
-            return False
 
-        _target = keywds["target_object"]
-        if _target.num_vertices == 0 or _target.num_faces == 0 :
-            print("Error: 002b: target_object has no vertices or faces in update_attirbutes FN")
-            return False
+        if "vertices" in keywds:
+            self.set_vertices(keywds["vertices"])
 
-        if "vertices" in keywds and (keywds["vertices"] == True):
-            self.set_vertices(_target.vertices)
+        if "faces" in keywds:
+            self.set_faces(keywds["faces"])
 
-        if "faces" in keywds and (keywds["faces"] == True):
-            self.set_faces(_target.faces)
-
-        if "vertices_texture" in keywds and (keywds["vertices_texture"] == True):
-            if len(_target.vertices_texture) != 0:
-                if len(self.vertices) == len(_target.vertices):
-                    self.vertices_texture = _target.vertices_texture.copy()
-                else:
-                    # TODO: if we have less vertices we should fill the gap (first idea: set all the rest of 0,0)
-                    print("Warning: 002a: Error of copying textcoords, target_object has different number vertices")
-
-                if len(self.faces) == len(_target.faces):
-                    self.faces_texture_indices = _target.faces_texture_indices.copy()
-                    self.mtlid = _target.mtlid.copy()
-                    self.mtls = _target.mtls.copy()
-                else:
-                    # TODO: if we have less faces we should add a default mtl and assign it's value to the rest
-                    print("Warning: 002b: Error of copying faces_texture_indices, target_object has different nb faces")
+        if "vertices_texture" in keywds:
+            if len(self.vertices) == len(keywds["vertices_texture"]):
+                self.vertices_texture = keywds["vertices_texture"].copy()
             else:
-                print("Warning: 002: Error of copying textcoords, target_object has no textcoords")
+                # TODO: if we have less vertices we should fill the gap (first idea: set all the rest of 0,0)
+                print("Warning: 002a: Error of copying textcoords, target_object has different number vertices")
 
-        if "mtllibs" in keywds and (keywds["mtllibs"] == True):
-            self.mtllibs = _target.mtllibs.copy()
-            self.mtls = _target.mtls.copy()
+        if "faces_texture_indices" in keywds:
+            if len(self.faces) == len(keywds["faces_texture_indices"]):
+                self.faces_texture_indices = keywds["faces_texture_indices"].copy()
+            else:
+                # TODO: if we have less faces we should add a default mtl and assign it's value to the rest
+                print("Warning: 002b: Error of copying faces_texture_indices, target_object has different nb faces")
+
+        if "mtllibs" in keywds:
+            self.mtllibs = keywds["mtllibs"].copy()
+
+        if "mtls" in keywds:
+            self.mtls = keywds["mtls"].copy()
+
+        if "mtlid" in keywds:
+            self.mtlid = keywds["mtlid"].copy()
 
     def export_pymesh(self):
         """
@@ -156,20 +149,20 @@ class WavefrontOBJ:
         """
         export mesh information.
         """
-        msg = "Mesh: {}, {} vertices, {} faces, {} vertices per face".format(self.name,
+        msg = "Mesh:\t{}, {} vertices, {} faces, {} vertices per face".format(self.name,
                                                                              self.vertices.shape[0],
                                                                              self.faces.shape[0],
                                                                              self.vertex_per_face)
         if len(self.mtllibs) > 0:
-            msg += ", mtls:"
+            msg += "\n\tmtls:"
             for mtl in self.mtllibs:
-                msg += "[{}]".format(mtl.file_name)
+                msg += "[{}, {}]".format(mtl.name, mtl.get_mtl_names())
 
         if len(self.vertices_texture) > 0:
-            msg += ", {} vertices_texture".format(len(self.vertices_texture))
+            msg += "\n\t{} vertices_texture".format(len(self.vertices_texture))
 
         if len(self.faces_norm_indices) > 0:
-            msg += ", Facevertices_normals included"
+            msg += "\n\tFacevertices_normals included"
 
         if len(self.vertices_normals) > 0:
             msg += ", {} Vertices vertices_normals".format(len(self.vertices_normals))
@@ -187,10 +180,10 @@ class WavefrontOBJ:
             ofile.write("#generated with MeshPyIO\n")
             # Materials
             for mlib in self.mtllibs:
-                ofile.write('mtllib {}\n'.format(mlib.file_name))
+                ofile.write('mtllib {}\n'.format(mlib.name))
                 if save_materials:
                     for mtl in self.mtllibs:
-                        mtl.save(os.path.join(os.path.dirname(filename), mtl.file_name), save_texture=save_textures)
+                        mtl.save(os.path.join(os.path.dirname(filename), mtl.name), save_texture=save_textures)
             # Vertices
             for vtx in self.vertices:
                 vertex_position = 'v '+' '.join(['{}'.format(v) for v in vtx])
@@ -271,23 +264,21 @@ class WavefrontOBJ:
         obj_file.load(filename, triangulate=triangulate)
         return obj_file
 
+
 if __name__ == "__main__":
-    file_1 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"),
-                          "frame-0001.obj")
-    file_2 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/male/Fitted/fitted"),
-                          "smoothed-0000.obj")
-    file_3 = "test/untitled.obj"
-    file_4 = os.path.join(os.path.expanduser("~/Documents/DATAs/Tibi/Reconstruction/energie/energie_seq_new"),
-                          "frame-0010.obj")
-    obj = WavefrontOBJ.load_obj(file_1)
+    path = os.path.join(os.path.expanduser("files/input"), "frame-0001_edited.obj")
+    obj = WavefrontOBJ.load_obj(path)
     print(obj.to_string())
     #obj_pymesh = obj.export_pymesh()
     #print(obj_pymesh.num_vertices)2
-    obj.save_obj("test/save/file_1.obj", save_materials=True, save_textures=True)
+    obj.save_obj("files/file_1.obj", save_materials=True, save_textures=True)
 
-    obj_2 = WavefrontOBJ.load_obj(file_1, triangulate=True)
+    #obj_2 = WavefrontOBJ.load_obj(file_2, triangulate=True)
+    #print(obj_2.to_string())
+
+    #obj_2.set_attributes(vertices=obj.vertices)
     #obj.set_attributes(target_object=obj_2, vertices=True, vertices_texture=True, mtllibs=True)#, faces=True)
-    print(obj_2.to_string())
-    obj_2.save_obj("test/save/file_1_triangulated.obj", save_materials=True, save_textures=True)
+    #print(obj_2.to_string())
+    #obj_2.save_obj("test/save/file_2_triangulate.obj", save_materials=True, save_textures=True)
 
 
