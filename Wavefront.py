@@ -84,6 +84,7 @@ class WavefrontOBJ:
         except:
             print("Error 003: file {} not found".format(filename))
             sys.exit()
+
     def set_vertices(self, vertices_list):
         self.num_vertices = vertices_list.shape[0]
         self.vertices = vertices_list.copy()
@@ -161,11 +162,14 @@ class WavefrontOBJ:
         if len(self.vertices_texture) > 0:
             msg += "\n\t{} vertices_texture".format(len(self.vertices_texture))
 
-        if len(self.faces_norm_indices) > 0:
-            msg += "\n\tFacevertices_normals included"
-
         if len(self.vertices_normals) > 0:
             msg += ", {} Vertices vertices_normals".format(len(self.vertices_normals))
+
+        if len(self.faces_norm_indices) > 0 and self.faces_norm_indices[0][0] != -1:
+            msg += "\n\tFacevertices_normals included"
+
+        if len(self.faces_texture_indices) > 0 and self.faces_texture_indices[0][0] != -1:
+            msg += "\n\tfaces_texture_indices included"
 
         return msg
 
@@ -271,8 +275,8 @@ if __name__ == "__main__":
     print(obj.to_string())
     #obj_pymesh = obj.export_pymesh()
     #print(obj_pymesh.num_vertices)2
-    obj.save_obj("files/file_1.obj", save_materials=True, save_textures=True)
-
+    #obj.save_obj("files/file_test.obj", save_materials=True, save_textures=True)
+    print(obj.mtlid[:3])
     #obj_2 = WavefrontOBJ.load_obj(file_2, triangulate=True)
     #print(obj_2.to_string())
 
