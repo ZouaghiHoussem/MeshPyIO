@@ -4,6 +4,7 @@ import sys
 from Material import MaterialLibrary
 from tools.utils import *
 import pymesh
+from datetime import datetime as time
 
 
 class WavefrontOBJ:
@@ -14,9 +15,7 @@ class WavefrontOBJ:
         """
         self.path = None               # path of loaded object
         self.name = None
-        self.mtllibs = []              # .mtl files references via mtllib
-        self.mtls = []                  # materials usemtl referenced
-        self.mtlid = []                # indices into self.mtls for each polygon
+        self.mtllibs = [MaterialLibrary.default_mtlib()]              # .mtl files references via mtllib
 
         # Vertex data
         self.vertices = []             # vertices as an Nx3 or Nx6 array (per vtx colors)
@@ -43,7 +42,8 @@ class WavefrontOBJ:
             with open(filename, 'r') as objf:
                 self.path = filename
                 self.name = os.path.basename(filename)
-                cur_mat = 0
+                cur_usemtl = 0
+                faces_counter = 0
                 for line in objf:
                     toks = line.split()
                     if not toks:
@@ -59,19 +59,26 @@ class WavefrontOBJ:
                         poly = [parse_vertex(vstr) for vstr in toks[1:]]
                         if triangulate:
                             for i in range(2, len(poly)):
-                                self.mtlid.append(cur_mat)
                                 self.faces.append((poly[0], poly[i - 1], poly[i]))
+                                self.mtllibs[0].mtls[cur_usemtl].append_face(faces_counter)
+                                faces_counter += 1
                         else:
-                            self.mtlid.append(cur_mat)
                             self.faces.append(poly)
+                            self.mtllibs[0].mtls[cur_usemtl].append_face(faces_counter)
+                            faces_counter += 1
+
                     elif toks[0] == 'mtllib':
                         _path = os.path.join(os.path.dirname(filename), toks[1])
                         mat = MaterialLibrary.load_mtlib(_path)
-                        self.mtllibs.append(mat)
+                        if (len(self.mtllibs) == 1) and self.mtllibs[0].name == "Default_mtl":
+                            self.mtllibs[0] = mat
+                        else:
+                            self.mtllibs.append(mat)
+
                     elif toks[0] == 'usemtl':
-                        if toks[1] not in self.mtls:
-                            self.mtls.append(toks[1])
-                        cur_mat = self.mtls.index(toks[1])
+                        cur_usemtl = self.mtllibs[0].index_of(toks[1])
+                        if cur_usemtl == -1:
+                            print("Material id:{} does not exist in material file".format(toks[1]))
 
             self.vertices = np.array(self.vertices)[:, :3]
             _faces = np.array(self.faces)
@@ -81,7 +88,7 @@ class WavefrontOBJ:
             self.num_vertices = self.vertices.shape[0]
             self.num_faces = self.faces.shape[0]
             self.vertex_per_face = self.faces[0].shape[0]
-        except:
+        except FileNotFoundError:
             print("Error 003: file {} not found".format(filename))
             sys.exit()
 
@@ -200,31 +207,29 @@ class WavefrontOBJ:
             for nrm in self.vertices_normals:
                 ofile.write('vn '+' '.join(['{}'.format(vn) for vn in nrm])+'\n')
 
-            # Material IDs
-            if not self.mtlid:
-                self.mtlid = [-1] * len(self.faces)
+            # Faces and usemtls
+            for _mtlib in self.mtllibs:
+                for _mtl in _mtlib.mtls:
+                    if len(_mtl.face_indices) > 1:
+                        print("we have {} faces in {}:{}".format(len(_mtl.face_indices), _mtlib.name, _mtl.newmtl))
+                        ofile.write('usemtl {}\n'.format(_mtl.newmtl))
+                        for _face_index in _mtl.face_indices:
+                            pstr = 'f'
+                            vstr = ''
+                            for index in range(self.vertex_per_face):
+                                # face index
+                                vstr += " {}".format(self.faces[_face_index][index]+1)
+                                # faces_texture_indices
+                                if len(self.faces_texture_indices) > 0 and self.faces_texture_indices[_face_index][0] >= 0:
+                                    vstr += "/{}".format(self.faces_texture_indices[_face_index][index]+1)
+                                # faces_norm_indices
+                                if len(self.faces_norm_indices) > 0 and self.faces_norm_indices[_face_index][0] >= 0:
+                                    if len(self.faces_texture_indices) < 0 or self.faces_texture_indices[_face_index][0] < 0:
+                                        vstr += "/"
+                                    vstr += "/{}".format(self.faces_norm_indices[_face_index][index]+1)
+                            pstr += vstr
+                            ofile.write(pstr+'\n')
 
-            poly_idx = np.argsort(np.array(self.mtlid))
-            cur_mat = -1
-            for pid in poly_idx:
-                if len(self.mtllibs) > 0 and len(self.mtlid) > 0 and self.mtlid[pid] != cur_mat:
-                    cur_mat = self.mtlid[pid]
-                    ofile.write('usemtl {}\n'.format(self.mtls[cur_mat]))
-                pstr = 'f'
-                vstr = ''
-                for index in range(self.vertex_per_face):
-                    # face index
-                    vstr += " {}".format(self.faces[pid][index]+1)
-                    # faces_texture_indices
-                    if len(self.faces_texture_indices) > 0 and self.faces_texture_indices[pid][0] >= 0:
-                        vstr += "/{}".format(self.faces_texture_indices[pid][index]+1)
-                    # faces_norm_indices
-                    if len(self.faces_norm_indices) > 0 and self.faces_norm_indices[pid][0] >= 0:
-                        if len(self.faces_texture_indices) < 0 or self.faces_texture_indices[pid][0] < 0:
-                            vstr += "/"
-                        vstr += "/{}".format(self.faces_norm_indices[pid][index]+1)
-                pstr += vstr
-                ofile.write(pstr+'\n')
     @staticmethod
     def form_mesh(*args, **keywds):
         """
@@ -270,19 +275,28 @@ class WavefrontOBJ:
 
 
 if __name__ == "__main__":
-    path = os.path.join(os.path.expanduser("files/input"), "smoothed-0000.obj")
+    path = os.path.join(os.path.expanduser("files/input"), "projected_6.obj")
+    print(time.now())
     obj = WavefrontOBJ.load_obj(path)
+    print(time.now())
+
     print(obj.to_string())
     #obj_pymesh = obj.export_pymesh()
     #print(obj_pymesh.num_vertices)2
     #obj.save_obj("files/file_test.obj", save_materials=True, save_textures=True)
-    print(obj.mtlid[:3])
+    #print(obj.mtlid[:3])
+    #print(len(obj.mtllibs[0].mtls[1].face_indices))
+    #print(obj.mtllibs[0].mtls[1].face_indices[:10])
+
+    #print(len(obj.mtllibs[0].mtls[0].face_indices))
+    #print(obj.mtllibs[0].mtls[0].face_indices[:10])
+
     #obj_2 = WavefrontOBJ.load_obj(file_2, triangulate=True)
     #print(obj_2.to_string())
 
     #obj_2.set_attributes(vertices=obj.vertices)
     #obj.set_attributes(target_object=obj_2, vertices=True, vertices_texture=True, mtllibs=True)#, faces=True)
     #print(obj_2.to_string())
-    #obj_2.save_obj("test/save/file_2_triangulate.obj", save_materials=True, save_textures=True)
-
+    obj.save_obj("files/input/multimat.obj", save_materials=True, save_textures=True)
+    print("done !")
 

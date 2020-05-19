@@ -3,6 +3,7 @@ import os
 from tools.utils import *
 from shutil import copyfile
 
+
 class Material:
     def __init__(self, newmtl='default_mtl'):
         # material name
@@ -18,6 +19,10 @@ class Material:
         self.Ni = -1
         self.d = -1         # Specifies the dissolve for the current material.
         self.illum = -1     # The illum statement specifies the illumination model to use in the material.
+        self.face_indices = [] # indices of associated faces of the object
+
+    def append_face(self, face_index):
+        self.face_indices.append(face_index)
 
     def to_string(self):
         """
@@ -69,7 +74,7 @@ class Material:
             self.illum = keywds["illum"]
 
     @staticmethod
-    def default_color(material_name="Default_mtl"):
+    def default_color(material_name="Default"):
         mtl = Material.form_material(newmtl=material_name,
                                      Ns=0,
                                      illum=0,
@@ -126,7 +131,7 @@ class MaterialLibrary:
                         self.mtls[curr_mtl].d = float(s_line[1])
                     if s_line[0] == 'illum' and curr_mtl >= 0:
                         self.mtls[curr_mtl].illum = int(s_line[1])
-        except:
+        except FileNotFoundError:
             print("Error 02: no file found, check path: {}".format(file_path))
             sys.exit()
 
@@ -181,7 +186,7 @@ class MaterialLibrary:
         return mtllib
 
     @staticmethod
-    def default_mtlib(file_name="materials"):
+    def default_mtlib(file_name="Default_mtl"):
         mtllib = MaterialLibrary(file_name)
         mtllib.mtls.append(Material.default_color())
         return mtllib
