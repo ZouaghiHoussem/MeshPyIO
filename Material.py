@@ -155,8 +155,11 @@ class MaterialLibrary:
                 ofile.write(mtl.to_string())
                 # coping texture
                 if (mtl.map_Kd != '') and save_texture:
-                    copyfile(os.path.join(self.path, mtl.map_Kd),
-                             os.path.join(os.path.dirname(file_path), mtl.map_Kd))
+                    if os.path.exists(os.path.join(self.path, mtl.map_Kd)):
+                        print("Warning: texture file was not copied, a copy exist already")
+                    else:
+                        copyfile(os.path.join(self.path, mtl.map_Kd),
+                                 os.path.join(os.path.dirname(file_path), mtl.map_Kd))
 
     def insert(self, material: Material):
         if self.index_of(material.newmtl) >= 0:
@@ -189,17 +192,17 @@ if __name__ == "__main__":
     # mat = Material.form_material(newmtl=mat[0].newmtl, map_Kd=mat[0].map_Kd, file_name=mat[0].file_name))
 
     # load mtlib
-    path = os.path.expanduser("test/save/frame-0001.mtl")
+    path = os.path.expanduser("~/Documents/These/FaceFitting_FWHSE/testCode/export/frame-0174.mtl")
     mtlibs = MaterialLibrary.load_mtlib(path)
 
     # add a new material
     mtlibs.insert(Material.default_color("white"))
     # remove material
-    mtlibs.mtls.pop(1)
+    #mtlibs.mtls.pop(1)
     # print mtlib data
     print(mtlibs.to_string())
     # sae mtlib file
-    mtlibs.save("test/save/tt/test.mtl")
+    mtlibs.save(os.path.expanduser("~/Documents/These/FaceFitting_FWHSE/testCode/export/frame-0174_2.mtl"))
 
     #print(mtlibs.index_of("white_"))
     #mtllib = MaterialLibrary.default_mtlib()

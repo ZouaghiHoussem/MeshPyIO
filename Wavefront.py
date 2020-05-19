@@ -15,7 +15,7 @@ class WavefrontOBJ:
         self.path = None               # path of loaded object
         self.name = None
         self.mtllibs = []              # .mtl files references via mtllib
-        self.mtls = []      # materials referenced
+        self.mtls = []                  # materials usemtl referenced
         self.mtlid = []                # indices into self.mtls for each polygon
 
         # Vertex data
