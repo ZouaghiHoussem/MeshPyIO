@@ -211,7 +211,6 @@ class WavefrontOBJ:
             for _mtlib in self.mtllibs:
                 for _mtl in _mtlib.mtls:
                     if len(_mtl.face_indices) > 1:
-                        print("we have {} faces in {}:{}".format(len(_mtl.face_indices), _mtlib.name, _mtl.newmtl))
                         ofile.write('usemtl {}\n'.format(_mtl.newmtl))
                         for _face_index in _mtl.face_indices:
                             pstr = 'f'
