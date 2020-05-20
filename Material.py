@@ -160,7 +160,7 @@ class MaterialLibrary:
                 ofile.write(mtl.to_string())
                 # coping texture
                 if (mtl.map_Kd != '') and save_texture:
-                    if os.path.exists(os.path.join(self.path, mtl.map_Kd)):
+                    if os.path.exists(os.path.join(file_path, mtl.map_Kd)):
                         print("Warning: texture file was not copied, a copy exist already")
                     else:
                         copyfile(os.path.join(self.path, mtl.map_Kd),
