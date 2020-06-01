@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from tools.utils import *
+from .tools.utils import *
 from shutil import copyfile
 
 
@@ -77,11 +77,11 @@ class Material:
     def default_color(material_name="Default"):
         mtl = Material.form_material(newmtl=material_name,
                                      Ns=0,
-                                     illum=0,
+                                     illum=1,
                                      d=1,
-                                     Kd=[0.8, 0.8, 0.8],
-                                     Ka=[0.8, 0.8, 0.8],
-                                     Ks=[0.8, 0.8, 0.8])
+                                     Kd=[0.529, 0.474, 0.532],
+                                     Ka=[0.529, 0.474, 0.532],
+                                     Ks=[0.529, 0.474, 0.532])
         return mtl
 
     @staticmethod
@@ -160,7 +160,7 @@ class MaterialLibrary:
                 ofile.write(mtl.to_string())
                 # coping texture
                 if (mtl.map_Kd != '') and save_texture:
-                    if os.path.exists(os.path.join(self.path, mtl.map_Kd)):
+                    if os.path.exists(os.path.join(os.path.dirname(file_path), mtl.map_Kd)):
                         print("Warning: texture file was not copied, a copy exist already")
                     else:
                         copyfile(os.path.join(self.path, mtl.map_Kd),

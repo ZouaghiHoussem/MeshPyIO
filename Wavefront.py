@@ -1,8 +1,8 @@
 import numpy as np
 import os
 import sys
-from Material import MaterialLibrary
-from tools.utils import *
+from .Material import MaterialLibrary
+from .tools.utils import *
 import pymesh
 from datetime import datetime as time
 
@@ -98,6 +98,10 @@ class WavefrontOBJ:
 
     def set_faces(self, faces):
         self.faces = faces.copy()
+        self.faces_texture_indices = faces.copy()
+        self.faces_norm_indices = [-1] * np.ones(shape=faces.copy().shape)
+        self.mtllibs[0].mtls[0].face_indices = list(range(0, self.num_faces))
+
 
     def set_attributes(self, **keywds):
         """
