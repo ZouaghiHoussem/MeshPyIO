@@ -24,6 +24,9 @@ class Material:
     def append_face(self, face_index):
         self.face_indices.append(face_index)
 
+    def has_texture(self):
+        return self.map_Kd != ''
+
     def to_string(self):
         """
         convert the material to string.

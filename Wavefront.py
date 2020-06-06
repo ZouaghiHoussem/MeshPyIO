@@ -100,7 +100,7 @@ class WavefrontOBJ:
         self.faces = faces.copy()
         self.faces_texture_indices = faces.copy()
         self.faces_norm_indices = [-1] * np.ones(shape=faces.copy().shape)
-        self.mtllibs[0].mtls[0].face_indices = list(range(0, self.num_faces))
+        self.mtllibs[0].mtls[0].face_indices = list(range(0, len(faces)))
 
 
     def set_attributes(self, **keywds):
@@ -168,7 +168,7 @@ class WavefrontOBJ:
         if len(self.mtllibs) > 0:
             msg += "\n\tmtls:"
             for mtl in self.mtllibs:
-                msg += "[{}, {}]".format(mtl.name, mtl.get_mtl_names())
+                msg += "[{}, {},  {} v_indices]".format(mtl.name, mtl.get_mtl_names(), len(mtl.mtls[0].face_indices))
 
         if len(self.vertices_texture) > 0:
             msg += "\n\t{} vertices_texture".format(len(self.vertices_texture))
@@ -180,7 +180,7 @@ class WavefrontOBJ:
             msg += "\n\tFacevertices_normals included"
 
         if len(self.faces_texture_indices) > 0 and self.faces_texture_indices[0][0] != -1:
-            msg += "\n\tfaces_texture_indices included"
+            msg += "\n\t{} faces_texture_indices".format(len(self.faces_texture_indices))
 
         return msg
 
