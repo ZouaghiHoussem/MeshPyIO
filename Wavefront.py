@@ -272,6 +272,14 @@ class WavefrontOBJ:
         """
         # parses a vertex record as either vid, vid/tid, vid//nid or vid/tid/nid
         # and returns a 3-tuple where unparsed values are replaced with -1
+        if not os.path.isfile(filename):
+            print("Wavefront Error: {} is not a file".format(os.path.basename(filename)))
+            sys.exit()
+
+        if filename.split(sep='.')[1].upper() != "OBJ":
+            print("Wavefront Error: Only obj files could be loaded")
+            sys.exit()
+
         obj_file = WavefrontOBJ()
         obj_file.load(filename, triangulate=triangulate)
         return obj_file
