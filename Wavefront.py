@@ -275,9 +275,8 @@ class WavefrontOBJ:
         if not os.path.isfile(filename):
             print("Wavefront Error: {} is not a file".format(os.path.basename(filename)))
             sys.exit()
-
-        if filename.split(sep='.')[1].upper() != "OBJ":
-            print("Wavefront Error: Only obj files could be loaded")
+        if filename.split(sep='.')[-1].upper() != "OBJ":
+            print("Wavefront Error: {} is not an obj file".format(filename))
             sys.exit()
 
         obj_file = WavefrontOBJ()
