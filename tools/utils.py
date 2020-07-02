@@ -19,3 +19,12 @@ def format_data(array, key:str, conv_str=False):
     str_data = np.array2string(row_data, separator=' ')
     str_data = re.sub('[\[\'\]]', '', str_data).replace(' {}'.format(key), '{}'.format(key))
     return str_data
+
+def conv_np_cv2(pos, image):
+    """
+    convert numpy 2D position to opencv position in the image
+    """
+    height, width, channels = image.shape
+    x = np.round(pos[0] * width).astype("int")
+    y = np.round(height - pos[1] * height).astype("int")
+    return ( y, x)

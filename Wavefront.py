@@ -1,12 +1,14 @@
 import numpy as np
 import os
 import sys
-from .Material import MaterialLibrary
-from .tools.utils import *
+
 import pymesh
 from datetime import datetime as time
+from skimage.io import imread, imsave
 
-
+from .Material import MaterialLibrary
+from .tools.utils import *
+from .tools.render import render_texture
 class WavefrontOBJ:
     def __init__(self):
         """
@@ -233,6 +235,53 @@ class WavefrontOBJ:
                             pstr += vstr
                             ofile.write(pstr+'\n')
 
+    def get_vertices_colors(self, face_indices, resolution_optimale=256):
+        if self.mtllibs[0].mtls[0].map_Kd == "":
+            print("Wavefront error: No texture to load")
+            return False
+
+        if len(self.vertices_texture) == 0:
+            print("Wavefront error: No vertices texture ")
+            return False
+
+        texture_path = os.path.join(os.path.dirname(self.path), self.mtllibs[0].mtls[0].map_Kd)
+        texture_img = imread(texture_path) / 255
+        all_colors = np.reshape(texture_img, [resolution_optimale**2, -1])
+        colors = all_colors[face_indices, :]
+        return colors
+
+    def get_verts_colors(self, resolution_optimale=256):
+        if self.mtllibs[0].mtls[0].map_Kd == "":
+            print("Wavefront error: No texture to load")
+            return False
+
+        if len(self.vertices_texture) == 0:
+            print("Wavefront error: No vertices texture ")
+            return False
+
+        texture_path = os.path.join(os.path.dirname(self.path), self.mtllibs[0].mtls[0].map_Kd)
+        texture_img = imread(texture_path) / 255
+        colors = np.empty(shape=(0, 3), dtype=int)
+        for vertex_texture in self.vertices_texture:
+            col = np.array(texture_img[conv_np_cv2(vertex_texture, texture_img)]).reshape(1,3)
+            colors = np.append(colors, col, axis=0)
+        return colors
+
+    def render(self, h=1024, w=1024, centralized=True, resolution_optimale=256):
+        if centralized:
+            self.origin_to_center()
+            self.vertices *= [3, 3, 1]
+            self.vertices += [w/2, h/2, 0]
+
+        colors = self.get_verts_colors(resolution_optimale=resolution_optimale)
+        img = render_texture(self.vertices.T, colors.T, self.faces.T, h, w, c=3)
+        return img
+
+    def origin_to_center(self):
+        self.vertices -= np.average(self.vertices, axis=0)
+        print("origin changed to the center")
+
+
     @staticmethod
     def form_mesh(*args, **keywds):
         """
@@ -273,7 +322,7 @@ class WavefrontOBJ:
         # parses a vertex record as either vid, vid/tid, vid//nid or vid/tid/nid
         # and returns a 3-tuple where unparsed values are replaced with -1
         if not os.path.isfile(filename):
-            print("Wavefront Error: {} is not a file".format(os.path.basename(filename)))
+            print("Wavefront Error: {} is not a file".format(filename))
             sys.exit()
 
         if filename.split(sep='.')[1].upper() != "OBJ":
