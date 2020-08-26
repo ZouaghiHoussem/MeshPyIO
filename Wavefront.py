@@ -8,7 +8,7 @@ from skimage.io import imread, imsave
 
 from .Material import MaterialLibrary
 from .tools.utils import *
-from .tools.render import render_texture
+from .tools.render import render_texture, render_texture_colors
 class WavefrontOBJ:
     def __init__(self):
         """
@@ -267,14 +267,35 @@ class WavefrontOBJ:
             colors = np.append(colors, col, axis=0)
         return colors
 
-    def render(self, h=1024, w=1024, centralized=True, resolution_optimale=256):
+    def render(self, h=1024, w=1024, centralized=True):
+        if centralized:
+            self.origin_to_center()
+            self.vertices *= [3, 3, 1]
+            self.vertices += [w/2, h/2, 0]
+
+        # load texture
+        texture_path = os.path.join(os.path.dirname(self.path), self.mtllibs[0].mtls[0].map_Kd)
+        texture_img = imread(texture_path) / 255
+
+        # convert vertices texture to uvs
+        uvs = np.empty(shape=(0, 2))
+        print(uvs.shape)
+        for vertex_texture in self.vertices_texture:
+            col = np.array(conv_np_cv2(vertex_texture, texture_img)).reshape(1,2)
+            uvs = np.append(uvs, col, axis=0)
+        print(uvs.shape)
+
+        img = render_texture(self.vertices.T, uvs.T.tolist(), self.faces.T, texture_img, h, w, c=3)
+        return img
+
+    def render_colors(self, h=1024, w=1024, centralized=True, resolution_optimale=256):
         if centralized:
             self.origin_to_center()
             self.vertices *= [3, 3, 1]
             self.vertices += [w/2, h/2, 0]
 
         colors = self.get_verts_colors(resolution_optimale=resolution_optimale)
-        img = render_texture(self.vertices.T, colors.T, self.faces.T, h, w, c=3)
+        img = render_texture_colors(self.vertices.T, colors.T, self.faces.T, h, w, c=3)
         return img
 
     def origin_to_center(self):
