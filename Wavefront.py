@@ -47,6 +47,7 @@ class WavefrontOBJ:
                 cur_usemtl = 0
                 faces_counter = 0
                 for line in objf:
+                    yield line
                     toks = line.split()
                     if not toks:
                         continue
